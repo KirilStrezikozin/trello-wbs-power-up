@@ -1,4 +1,5 @@
-import './globals.css';
+import '../globals.css';
+import Script from 'next/script';
 
 export default function RootLayout({
   children,
@@ -8,6 +9,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <Script
+          src="https://p.trellocdn.com/power-up.min.js"
+          strategy="beforeInteractive"
+        />
       </head>
       <body>
         {children}
