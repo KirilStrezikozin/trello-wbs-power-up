@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2025 Kiril Strezikozin
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * You may not use this file except in compliance with the MIT license terms.
+ */
+
 'use client'
 
 import { Trello } from '@/src/types/trello';
