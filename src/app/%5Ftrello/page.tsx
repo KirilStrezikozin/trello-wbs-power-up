@@ -10,6 +10,7 @@
 
 import { Trello } from '@/src/types/trello';
 import { useEffect } from 'react';
+import { LogoIcon } from '../lib/constants';
 
 export default function Home() {
   useEffect(() => {
@@ -23,8 +24,8 @@ export default function Home() {
           return [
             {
               icon: {
-                light: 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Frocket-ship.png?1494946700421',
-                dark: 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Frocket-ship.png?1494946700421',
+                light: originUrl + LogoIcon.light,
+                dark: originUrl + LogoIcon.dark,
               },
               text: 'Hello',
               condition: 'always',
