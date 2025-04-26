@@ -13,3 +13,8 @@ export const LogoIcon = {
   light: '/logo_light.svg',
   dark: '/logo_dark.svg'
 }
+
+/**
+ * Trello URL.
+ */
+export const TrelloUrl = 'https://trello.com';
