@@ -1,6 +1,6 @@
 'use client'
 
-import { Trello } from '@/types/trello';
+import { Trello } from '@/src/types/trello';
 import { useEffect } from 'react';
 
 export default function Home() {
