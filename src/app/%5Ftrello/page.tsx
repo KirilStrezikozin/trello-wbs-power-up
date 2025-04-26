@@ -9,66 +9,48 @@
 'use client'
 
 import { Trello } from '@/src/types/trello';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LogoIcon } from '../lib/constants';
 
 export default function Home() {
+  const [trelloInitialized, setTrelloInitialized] = useState(false);
+
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.TrelloPowerUp) {
-      const originUrl = window.location.origin;
-      const callbackUrl = originUrl;
+    if (typeof window === 'undefined') return;
+    else if (typeof window.parent !== 'undefined' && window.parent === window) return;
+    else if (typeof window.TrelloPowerUp === 'undefined') return;
 
-      window.TrelloPowerUp.initialize({
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        'board-buttons': function(_t: Trello.PowerUp.IFrame) {
-          return [
-            {
-              icon: {
-                light: originUrl + LogoIcon.light,
-                dark: originUrl + LogoIcon.dark,
-              },
-              text: 'Hello',
-              condition: 'always',
-              callback: async function(tc: Trello.PowerUp.IFrame) {
-                return tc.lists('all').then((lists) => {
-                  console.log(JSON.stringify(lists, null, 2));
-                })
+    const originUrl = window.location.origin;
+    const callbackUrl = originUrl;
 
-                // tc.board().then(
-                //   (data) => {
-                //     console.log('HEY!!!', data.labels);
-                //   },
-                //   (error) => {
-                //     console.log('OOOHHH NOOOOO', error);
-                //   }
-                // )
-                //
-                // return tc.alert({
-                //   message: 'Pressed!',
-                //   display: 'info',
-                //   duration: 5
-                // });
-              }
-            },
-            {
-              icon: {
-                light: 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Frocket-ship.png?1494946700421',
-                dark: 'https://cdn.glitch.com/1b42d7fe-bda8-4af8-a6c8-eff0cea9e08a%2Frocket-ship.png?1494946700421',
-              },
-              text: 'WBS',
-              condition: 'always',
-              url: callbackUrl,
-            }
-          ];
-        },
-      });
+    window.TrelloPowerUp.initialize({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      'board-buttons': function(_t: Trello.PowerUp.IFrame) {
+        return [{
+          icon: {
+            light: originUrl + LogoIcon.light,
+            dark: originUrl + LogoIcon.dark,
+          },
+          text: 'WBS',
+          condition: 'always',
+          url: callbackUrl,
+        }];
+      },
+    });
 
-    }
+    setTrelloInitialized(true);
   }, []);
+
+  if (!trelloInitialized) {
+    return (
+      <main>
+        <h1>Cannot initialize Trello</h1>
+      </main>
+    );
+  }
 
   return (
     <main>
       <h1>Trello Power Up</h1>
     </main>
   );
-}
