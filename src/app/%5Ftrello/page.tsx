@@ -12,14 +12,31 @@ import { Trello } from '@/src/types/trello';
 import { useEffect, useState } from 'react';
 
 import { LogoIcon, PowerUpName } from '../lib/constants';
+import { PowerUpState } from '../lib/trello/power-up';
+
 export default function Home() {
-  const [trelloInitialized, setTrelloInitialized] = useState(false);
+  const [powerUpState, setPowerUpState] = useState(PowerUpState.Loading);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    else if (typeof window.parent !== 'undefined' && window.parent === window) return;
-    else if (typeof window.TrelloPowerUp === 'undefined') return;
+    /* Determine if we can load a Trello power-up and set the corresponding
+     * state value. We will re-render page contents when this value changes.
+     */
+    if (typeof window === 'undefined') {
+      setPowerUpState(PowerUpState.UnknownError);
+      return;
+    }
 
+    else if (typeof window.parent !== 'undefined' && window.parent === window) {
+      setPowerUpState(PowerUpState.NotInTrelloError);
+      return;
+    }
+
+    else if (typeof window.TrelloPowerUp === 'undefined') {
+      setPowerUpState(PowerUpState.UnknownError);
+      return;
+    }
+
+    /* Initialize a Trello power-up. */
     const originUrl = window.location.origin;
     const callbackUrl = originUrl;
 
@@ -38,19 +55,36 @@ export default function Home() {
       },
     });
 
-    setTrelloInitialized(true);
+    setPowerUpState(PowerUpState.Ready);
   }, []);
 
-  if (!trelloInitialized) {
-    return (
-      <main>
-        <h1>Cannot initialize Trello</h1>
-      </main>
-    );
+
+  switch (powerUpState) {
+    case PowerUpState.Loading:
+      return (
+        <main>
+          <h1>Loading...</h1>
+        </main>
+      );
+    case PowerUpState.Ready:
+      return (
+        <main>
+          <h1>Hello from Trello Power Up!</h1>
+        </main>
+      );
+    case PowerUpState.NotInTrelloError:
+      return (
+        <main>
+          <h1>You must open this page from inside Trello!</h1>
+        </main>
+      );
+    default:
+      return (
+        <main>
+          <h1>Cannot initialize Trello Power Up!</h1>
+          <h1>You must open this page from inside Trello!</h1>
+        </main>
+      );
   }
 
-  return (
-    <main>
-      <h1>Trello Power Up</h1>
-    </main>
-  );
+}
