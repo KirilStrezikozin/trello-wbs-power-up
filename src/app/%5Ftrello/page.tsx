@@ -11,8 +11,7 @@
 import { Trello } from '@/src/types/trello';
 import { useEffect, useState } from 'react';
 
-import { LogoIcon, PowerUpName } from '../lib/constants';
-import { PowerUpState } from '../lib/trello/power-up';
+import { CapabilityHandlers, PowerUpState } from '../lib/power-up';
 
 export default function Home() {
   const [powerUpState, setPowerUpState] = useState(PowerUpState.Loading);
@@ -38,20 +37,11 @@ export default function Home() {
 
     /* Initialize a Trello power-up. */
     const originUrl = window.location.origin;
-    const callbackUrl = originUrl;
 
     window.TrelloPowerUp.initialize({
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
       'board-buttons': function(_t: Trello.PowerUp.IFrame) {
-        return [{
-          icon: {
-            light: originUrl + LogoIcon.light,
-            dark: originUrl + LogoIcon.dark,
-          },
-          text: PowerUpName,
-          condition: 'always',
-          url: callbackUrl,
-        }];
+        return [CapabilityHandlers.getDefault(originUrl)];
       },
     });
 
@@ -86,5 +76,4 @@ export default function Home() {
         </main>
       );
   }
-
 }

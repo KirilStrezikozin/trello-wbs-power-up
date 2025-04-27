@@ -1,32 +1,22 @@
 /**
- * Copyright (c) 2021 Optro
+ * Copyright (c) 2025 Kiril Strezikozin
  *
  * SPDX-License-Identifier: MIT
  *
- * This file does not modify the original content, which is available at
- * https://github.com/optro-cloud/trello-powerup-full-sample and licensed under
- * the MIT license.
+ * You may not use this file except in compliance with the MIT license terms.
  */
 
 import { Trello } from "./trello";
 
-export interface Note {
-  color: string;
-  text: string;
-}
+namespace PowerUp {
 
-export interface NoteWithCard extends Note {
-  card: Trello.PowerUp.Card;
-}
-
-export interface CardWithNotes extends Trello.PowerUp.Card {
-  notes?: Note[];
-}
-
-export interface CapabilityProps {
-  baseUrl: string;
-  icon: {
-    light: string;
-    dark: string;
+  export interface CapabilityHandlers {
+    /**
+     * Construct the default handler for a capability.
+     * @param origin - A string representing the power-up origin URL.
+     * @returns Trello board-button capability handler.
+     */
+    getDefault: (origin: string) => Trello.PowerUp.BoardButtonUrl;
   }
+
 }
