@@ -45,4 +45,9 @@ namespace PowerUp {
     }[],
   }
 
+  export type WBSData = {
+    boardId: string,
+    listData: ListData[],
+  }[]
+
 }

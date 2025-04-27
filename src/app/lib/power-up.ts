@@ -10,6 +10,7 @@ import { Trello } from '@/src/types/trello';
 import { PowerUp } from '@/src/types/power-up';
 
 import { LogoIcon, PowerUpName } from './constants';
+import { DataStorage } from './data';
 
 /**
  * Trello power-up initialization state constants.
@@ -26,7 +27,7 @@ export enum PowerUpState {
  * @param lists - Trello Lists to get the data from.
  * @returns Assembled data.
  */
-function makeData(lists: Trello.PowerUp.List[]): PowerUp.ListData[] {
+function makeListData(lists: Trello.PowerUp.List[]): PowerUp.ListData[] {
   return lists.map(({ name, cards }) => ({
     name,
     cards: cards.map(({ name, dueComplete }) => ({
@@ -52,9 +53,25 @@ export const CapabilityHandlers: PowerUp.CapabilityHandlers = {
       url: callbackUrl,
 
       callback(t: Trello.PowerUp.IFrame) {
-        t.lists('all').then((lists: Trello.PowerUp.List[]) => {
-          const data = makeData(lists);
-          console.log(data.length, JSON.stringify(data, null, 2));
+        t.board('id').then(({ id }) => {
+          const boardId = id;
+
+          t.lists('all').then((lists: Trello.PowerUp.List[]) => {
+            const storage = DataStorage.getInstance(window, origin);
+
+            /* Assemble new data for the work breakdown structure chart
+              * and try to write it to the local storage. Currently opened
+              * chart pages, if any, will get notified that we have updated
+              * the data. */
+            const listData = makeListData(lists);
+
+            try {
+              storage.write(boardId, listData);
+            } catch (error) {
+              console.error(origin + ': ' + error);
+              return;
+            }
+          });
         });
 
         return t.alert({
