@@ -18,3 +18,5 @@ export const LogoIcon = {
  * Trello URL.
  */
 export const TrelloUrl = 'https://trello.com';
+
+export const PowerUpName = 'WBS';

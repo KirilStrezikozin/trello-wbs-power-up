@@ -10,8 +10,8 @@
 
 import { Trello } from '@/src/types/trello';
 import { useEffect, useState } from 'react';
-import { LogoIcon } from '../lib/constants';
 
+import { LogoIcon, PowerUpName } from '../lib/constants';
 export default function Home() {
   const [trelloInitialized, setTrelloInitialized] = useState(false);
 
@@ -31,7 +31,7 @@ export default function Home() {
             light: originUrl + LogoIcon.light,
             dark: originUrl + LogoIcon.dark,
           },
-          text: 'WBS',
+          text: PowerUpName,
           condition: 'always',
           url: callbackUrl,
         }];
