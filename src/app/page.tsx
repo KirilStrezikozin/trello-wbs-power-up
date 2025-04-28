@@ -10,7 +10,9 @@
 
 import { useEffect, useState } from 'react';
 
-import { DataStorage } from './lib/data';
+import Intro from '../components/intro';
+import { DataStorage } from '../lib/data';
+import { PowerUpDescription, PowerUpNameLong } from '../lib/constants';
 
 export default function Home() {
   const [storageReady, setStorageReady] = useState(false);
@@ -38,15 +40,23 @@ export default function Home() {
 
   if (storageReady) {
     return (
-      <main>
+      <>
+        <Intro
+          title={PowerUpNameLong}
+          description={PowerUpDescription + '.'}
+        />
         <h1>I could be a chart.</h1>
-      </main>
+      </>
     );
   } else {
     return (
-      <main>
+      <>
+        <Intro
+          title={PowerUpNameLong}
+          description={PowerUpDescription + '.'}
+        />
         <h1>I cannot be a chart.</h1>
-      </main>
+      </>
     );
   }
 }

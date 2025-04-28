@@ -20,3 +20,9 @@ export const LogoIcon = {
 export const TrelloUrl = 'https://trello.com';
 
 export const PowerUpName = 'WBS';
+export const PowerUpNameLong = 'WBS Chart';
+export const PowerUpDescription =
+  'Create beautiful work breakdown structure charts from any Trello Board';
+
+export const PowerUpSourceUrl =
+  'https://gitlab.com/KirilStrezikozin/trello-wbs-power-up';

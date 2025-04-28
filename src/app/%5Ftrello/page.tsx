@@ -11,12 +11,16 @@
 import { Trello } from '@/src/types/trello';
 import { useEffect, useState } from 'react';
 
-import { CapabilityHandlers, PowerUpState } from '../lib/power-up';
+import Intro from '../../components/intro';
+import { CapabilityHandlers, PowerUpState } from '../../lib/power-up';
+import { PowerUpNameLong } from '../../lib/constants';
 
 export default function Home() {
   const [powerUpState, setPowerUpState] = useState(PowerUpState.Loading);
 
   useEffect(() => {
+    const origin = window.location.origin;
+
     /* Determine if we can load a Trello power-up and set the corresponding
      * state value. We will re-render page contents when this value changes.
      */
@@ -31,17 +35,16 @@ export default function Home() {
     }
 
     else if (typeof window.TrelloPowerUp === 'undefined') {
+      console.error(origin + ': Unknown error');
       setPowerUpState(PowerUpState.UnknownError);
       return;
     }
 
     /* Initialize a Trello power-up. */
-    const originUrl = window.location.origin;
-
     window.TrelloPowerUp.initialize({
       /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
       'board-buttons': function(_t: Trello.PowerUp.IFrame) {
-        return [CapabilityHandlers.getDefault(originUrl)];
+        return [CapabilityHandlers.getDefault(origin)];
       },
     });
 
@@ -52,28 +55,32 @@ export default function Home() {
   switch (powerUpState) {
     case PowerUpState.Loading:
       return (
-        <main>
-          <h1>Loading...</h1>
-        </main>
+        <Intro
+          title='Loading...'
+          description='Trello Power-Up is loading.'
+        >
+        </Intro>
       );
     case PowerUpState.Ready:
       return (
-        <main>
-          <h1>Hello from Trello Power Up!</h1>
-        </main>
+        <Intro
+          title={PowerUpNameLong}
+          description='Trello Power-Up has been successfully loaded!'
+        />
       );
     case PowerUpState.NotInTrelloError:
       return (
-        <main>
-          <h1>You must open this page from inside Trello!</h1>
-        </main>
+        <Intro
+          title='XXX Error'
+          description="No one's on the line... Did you open this page from inside Trello?"
+        />
       );
     default:
       return (
-        <main>
-          <h1>Cannot initialize Trello Power Up!</h1>
-          <h1>You must open this page from inside Trello!</h1>
-        </main>
+        <Intro
+          title='XXX Error'
+          description="Failed to initialize the Power-Up. Did you open this page from inside Trello?"
+        />
       );
   }
 }
