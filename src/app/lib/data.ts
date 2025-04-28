@@ -6,8 +6,6 @@
  * You may not use this file except in compliance with the MIT license terms.
  */
 
-import { PowerUp } from "@/src/types/power-up";
-
 /**
  * Represents a local data storage.
  *
@@ -18,7 +16,7 @@ import { PowerUp } from "@/src/types/power-up";
  * retrieve a singleton instance.
  */
 export class DataStorage {
-  private data: PowerUp.WBSData = [];
+  private data: Data.Boards = [];
   private dataKey: string;
   private window: Window;
 
@@ -39,14 +37,14 @@ export class DataStorage {
    *
    * @returns Data that was loaded and parsed.
    */
-  public read(): PowerUp.WBSData {
+  public read(): Data.Boards {
     const dataStr = this.window.localStorage.getItem(this.dataKey);
 
     if (dataStr) {
       /* WBS data exists (might be new) in local storage.
        * Keep the data we had if we fail to parse it. */
       try {
-        const newData: PowerUp.WBSData = JSON.parse(dataStr);
+        const newData: Data.Boards = JSON.parse(dataStr);
         if (Array.isArray(newData)) this.data = newData;
       } catch (error) {
         console.warn('DataStorage update skipped (' + this.dataKey + '): ' + error);
@@ -61,31 +59,27 @@ export class DataStorage {
     * @param newData - New data for the data storage instance.
     * @returns The updated data.
     */
-  public update(newData: PowerUp.WBSData): PowerUp.WBSData {
+  public update(newData: Data.Boards): Data.Boards {
     this.data = newData;
     return this.data;
   }
 
   /**
-   * Write new data into the local storage.
+   * Write new Trello Board data into the local storage.
    *
-   * @param boardId - The ID of the Trello Board to associate the data with.
-   * @param listData - Data to write.
+   * @param board - Board data to write.
    * @returns The updated data.
    *
    * @throws {TypeError} When failed to stringify the provided data into JSON.
    * @throws {QuotaExceededError} When `localStorage.setItem()` was declined.
    */
-  public write(boardId: string, listData: PowerUp.ListData[]): PowerUp.WBSData {
-    const index = this.data.findIndex((value) => value.boardId === boardId);
+  public write(board: Data.Board): Data.Boards {
+    const index = this.data.findIndex((value) => value.id === board.id);
 
     if (index === -1) {
-      this.data.push({
-        boardId: boardId,
-        listData: listData,
-      });
+      this.data.push(board);
     } else {
-      this.data[index].listData = listData;
+      this.data[index].lists = board.lists;
     }
 
     this.window.localStorage.setItem(this.dataKey, JSON.stringify(this.data));
@@ -136,13 +130,13 @@ export class DataStorage {
    *
    * @param callbackfn - The callback function to call on new event.
    */
-  public onevent(callbackfn: (newData: PowerUp.WBSData) => void) {
+  public onevent(callbackfn: (newData: Data.Boards) => void) {
     this.window.addEventListener('storage', (event) => {
       if (event.key !== this.dataKey) return;
       else if (!event.newValue) return;
 
       try {
-        const newData: PowerUp.WBSData = JSON.parse(event.newValue);
+        const newData: Data.Boards = JSON.parse(event.newValue);
         if (!Array.isArray(newData)) return;
         callbackfn(newData);
       } catch (error) {

@@ -18,36 +18,4 @@ namespace PowerUp {
      */
     getDefault: (origin: string) => Trello.PowerUp.BoardButtonCallback;
   }
-
-  /**
-   * Represents the data from a single Trello List required to build a work
-   * breakdown structure chart.
-   */
-  export interface ListData {
-    /**
-     * Name of the Trello List.
-     */
-    name: string,
-
-    /**
-     * Array of card information.
-     */
-    cards: {
-      /**
-       * Name of the Trello Card.
-       */
-      name: string,
-
-      /**
-       * Whether the Trello Card has been completed.
-       */
-      isComplete: boolean,
-    }[],
-  }
-
-  export type WBSData = {
-    boardId: string,
-    listData: ListData[],
-  }[]
-
 }

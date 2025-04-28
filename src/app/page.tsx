@@ -8,7 +8,6 @@
 
 'use client'
 
-import { PowerUp } from '@/src/types/power-up';
 import { useEffect, useState } from 'react';
 
 import { DataStorage } from './lib/data';
@@ -19,7 +18,7 @@ export default function Home() {
   useEffect(() => {
     const storage = DataStorage.getInstance(window, window.location.origin);
 
-    storage.onevent((newData: PowerUp.WBSData) => {
+    storage.onevent((newData) => {
       storage.update(newData);
       setStorageReady(true);
 

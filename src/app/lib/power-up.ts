@@ -23,11 +23,11 @@ export enum PowerUpState {
 }
 
 /**
- * Assemble the data required to build a work breakdown structure chart.
+ * Assemble the data for a work breakdown structure chart from Trello Lists.
  * @param lists - Trello Lists to get the data from.
  * @returns Assembled data.
  */
-function makeListData(lists: Trello.PowerUp.List[]): PowerUp.ListData[] {
+function makeListData(lists: Trello.PowerUp.List[]): Data.List[] {
   return lists.map(({ name, cards }) => ({
     name,
     cards: cards.map(({ name, dueComplete }) => ({
@@ -53,20 +53,19 @@ export const CapabilityHandlers: PowerUp.CapabilityHandlers = {
       url: callbackUrl,
 
       callback(t: Trello.PowerUp.IFrame) {
-        t.board('id').then(({ id }) => {
-          const boardId = id;
+        t.board('id', 'name').then(({ id, name }) => {
 
           t.lists('all').then((lists: Trello.PowerUp.List[]) => {
             const storage = DataStorage.getInstance(window, origin);
 
             /* Assemble new data for the work breakdown structure chart
-              * and try to write it to the local storage. Currently opened
-              * chart pages, if any, will get notified that we have updated
-              * the data. */
+             * and try to write it to the local storage. Currently opened
+             * chart pages, if any, will get notified that we have updated
+             * the data. */
             const listData = makeListData(lists);
 
             try {
-              storage.write(boardId, listData);
+              storage.write({ id: id, name: name, lists: listData });
             } catch (error) {
               console.error(origin + ': ' + error);
               return;
