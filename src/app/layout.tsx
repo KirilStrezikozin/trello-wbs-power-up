@@ -13,6 +13,7 @@ import type { Metadata } from 'next';
 
 import Footer from '../components/footer';
 import ThemeSwitch from '../components/theme';
+import { DataTool } from '../components/tool';
 
 import { PowerUpDescription, PowerUpNameLong } from '../lib/constants';
 
@@ -58,7 +59,10 @@ export default function RootLayout({
               <Footer />
             </div>
             <div className='fixed bottom-6 right-6'>
-              <ThemeSwitch />
+              <div className='flex flex-col gap-[8px]'>
+                <DataTool />
+                <ThemeSwitch />
+              </div>
             </div>
           </div>
         </ThemeProvider>

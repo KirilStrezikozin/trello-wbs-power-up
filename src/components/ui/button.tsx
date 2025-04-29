@@ -1,4 +1,4 @@
-/* <https://ui.shadcn.com/docs/components/button> */
+/* <https://ui.shadcn.com/docs/components/> */
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"

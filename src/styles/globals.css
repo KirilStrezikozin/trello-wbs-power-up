@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @import './theme.css';
+@import './animate.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -43,6 +44,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-shake: shake 0.5s both infinite;
+  --animate-shake-once: shake 0.5s both 1;
 }
 
 :root {
