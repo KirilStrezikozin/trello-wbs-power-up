@@ -31,3 +31,7 @@ export function nextTheme(theme: string | undefined): string {
       return Theme.System;
   }
 }
+
+export default function IsDevelopment(): boolean {
+  return process.env.NODE_ENV == 'development';
+}
