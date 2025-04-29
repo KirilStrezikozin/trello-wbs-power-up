@@ -12,6 +12,8 @@ import { PowerUp } from '@/src/types/power-up';
 import { LogoIcon, PowerUpName } from './constants';
 import { DataStorage } from './data';
 
+import * as Data from '../types/data';
+
 /**
  * Trello power-up initialization state constants.
  */

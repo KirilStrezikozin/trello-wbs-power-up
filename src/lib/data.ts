@@ -6,6 +6,8 @@
  * You may not use this file except in compliance with the MIT license terms.
  */
 
+import * as Data from '@/src/types/data';
+
 /**
  * Represents a local data storage.
  *
@@ -23,6 +25,25 @@ export class DataStorage {
   private static singleton: DataStorage;
 
   /**
+   * Verifies an object with boards data against its validation schema.
+   *
+   * @param data - Object to verify.
+   * @returns - Verified boards data on success.
+   *
+   * @throws {TypeError} When validation failed.
+   */
+  public static verifiedData(data: Data.Boards): Data.Boards {
+    const verif = Data.BoardsSchema.safeParse(data);
+    if (!verif.success) {
+      throw TypeError('Argument does not satisfy validation schema');
+    }
+
+    /* Return clean data value instead of the given argument
+     * in case schema strips out unrecognized keys. */
+    return verif.data;
+  }
+
+  /**
    * Get the default local storage key for WBS data.
    * @param origin - A string representing the power-up origin URL.
    * @returns Local storage key.
@@ -32,8 +53,8 @@ export class DataStorage {
   }
 
   /**
-   * Read the previous data stored in the local storage, if it exists and can
-   * be parsed from JSON.
+   * Read the previous data stored in the local storage,
+   * if it exists and is valid.
    *
    * @returns Data that was loaded and parsed.
    */
@@ -45,7 +66,8 @@ export class DataStorage {
        * Keep the data we had if we fail to parse it. */
       try {
         const newData: Data.Boards = JSON.parse(dataStr);
-        if (Array.isArray(newData)) this.data = newData;
+        this.data = DataStorage.verifiedData(newData);
+
       } catch (error) {
         console.warn('DataStorage update skipped (' + this.dataKey + '): ' + error);
       }
@@ -55,12 +77,15 @@ export class DataStorage {
   }
 
   /**
-    * Updates data storage's data.
-    * @param newData - New data for the data storage instance.
-    * @returns The updated data.
-    */
+   * Updates data storage's data.
+   *
+   * @param newData - New data for the data storage instance.
+   * @returns The updated data.
+   *
+   * @throws {TypeError} When validation failed.
+   */
   public update(newData: Data.Boards): Data.Boards {
-    this.data = newData;
+    this.data = DataStorage.verifiedData(newData);
     return this.data;
   }
 
@@ -70,10 +95,18 @@ export class DataStorage {
    * @param board - Board data to write.
    * @returns The updated data.
    *
-   * @throws {TypeError} When failed to stringify the provided data into JSON.
+   * @throws {TypeError} When board data validation failed.
    * @throws {QuotaExceededError} When `localStorage.setItem()` was declined.
    */
   public write(board: Data.Board): Data.Boards {
+    const verif = Data.BoardSchema.safeParse(board);
+    if (!verif.success) {
+      throw TypeError('Argument does not satisfy validation schema');
+    }
+
+    /* Use clean board value in case schema strips out unrecognized keys. */
+    board = verif.data;
+
     const index = this.data.findIndex((value) => value.id === board.id);
 
     if (index === -1) {
@@ -137,8 +170,8 @@ export class DataStorage {
 
       try {
         const newData: Data.Boards = JSON.parse(event.newValue);
-        if (!Array.isArray(newData)) return;
-        callbackfn(newData);
+        callbackfn(DataStorage.verifiedData(newData));
+
       } catch (error) {
         console.error('DataStorage event: ' + error);
       }
