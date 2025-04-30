@@ -9,7 +9,7 @@
 'use client'
 
 import { FileCog } from 'lucide-react';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 import {
   Dialog,
@@ -26,14 +26,12 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 
-import { useMounted } from '../hooks/use-mounted';
-
-import { DataStorage } from '../lib/data';
 import { cn } from '../lib/utils';
 
-export function DataTool() {
-  const mounted = useMounted();
+import * as StorageProvider from '../providers/storage';
+import { DataStorage } from '../lib/data';
 
+export function DataTool() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
   const [shaking, setShaking] = useState(false);
@@ -41,20 +39,24 @@ export function DataTool() {
   const [dataKey, setDataKey] = useState('');
   const [dataValue, setDataValue] = useState('');
 
-  /* Render the data tool on the client. */
-  if (!mounted /* || !IsDevelopment() */) {
+  const storage = useContext(StorageProvider.Context);
+  const dispatchStorage = useContext(StorageProvider.DispatchContext);
+
+  /* Render the data tool on the client once local storage is mounted. */
+  if (!storage.mounted /* || !IsDevelopment() */) {
     return (
       <>
       </>
     );
   }
 
-  const origin = window.location.origin;
-  const storage = DataStorage.getInstance(window, origin);
-
   const initFields = () => {
-    setDataKey(DataStorage.getDefaultKey(origin));
-    setDataValue(JSON.stringify(storage.read(), null, 2));
+    if (!storage.instance) {
+      throw StorageProvider.UninitializedError;
+    }
+
+    setDataKey(storage.instance.key);
+    setDataValue(JSON.stringify(storage.data, null, 2));
   }
 
   const onOpen = () => {
@@ -70,12 +72,32 @@ export function DataTool() {
   }
 
   const onSave = () => {
+    if (!storage.instance) {
+      throw StorageProvider.UninitializedError;
+    }
+
+    else if (!dispatchStorage) {
+      throw Error('No provider of storage dispatch');
+    }
+
     try {
-      storage.update(JSON.parse(dataValue));
+      const newData = DataStorage.verifiedData(JSON.parse(dataValue));
+
       setOpen(false);
-    } catch {
-      setShaking(true);
+
+      dispatchStorage({
+        type: 'update',
+        newData: newData,
+      });
+
+    } catch (error) {
       setError('Value is invalid. Schema issue or bad JSON syntax.');
+      setShaking(true);
+
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+
       return;
     }
   }
