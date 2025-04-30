@@ -53,6 +53,14 @@ export class DataStorage {
   }
 
   /**
+   * Get the data key of the storage.
+   * @returns Data key.
+   */
+  public get key(): string {
+    return this.dataKey;
+  }
+
+  /**
    * Read the previous data stored in the local storage,
    * if it exists and is valid.
    *
