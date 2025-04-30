@@ -6,14 +6,24 @@
  * You may not use this file except in compliance with the MIT license terms.
  */
 
+import { useContext } from 'react';
 import { FileQuestion } from 'lucide-react';
+
 import { PowerUpSourceUrl, TrelloUrl } from '../lib/constants';
+import { cn } from '../lib/utils';
+
+import * as StorageProvider from '../providers/storage';
 
 export default function Footer() {
+  const storage = useContext(StorageProvider.Context);
+
   return (
     <footer className='row-start-3 flex gap-[24px] flex-wrap items-center justify-center'>
       <a
-        className='flex items-center gap-2 hover:underline hover:underline-offset-4'
+        className={cn(
+          storage.data.length > 0 && 'hover:underline hover:underline-offset-4',
+          'flex items-center gap-2'
+        )}
         href='/guide'
         target='_blank'
         rel='noopener noreferrer'
@@ -25,9 +35,9 @@ export default function Footer() {
           width={16}
           height={16}
         />
-
-        Usage guide
-
+        <p className={storage.data.length > 0 ? '' : 'relative text-animatable-underline'}>
+          Usage guide
+        </p>
       </a>
       <a
         className='flex items-center gap-2 hover:underline hover:underline-offset-4'

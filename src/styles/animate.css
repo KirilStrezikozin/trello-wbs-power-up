@@ -1,3 +1,21 @@
+@keyframes underline {
+  0% {
+    transform: scaleX(0);
+    transform-origin: top left;
+  }
+  50% {
+    transform: scaleX(1);
+    transform-origin: top left;
+  }
+  51% {
+    transform-origin: top right;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: top right;
+  }
+}
+
 @keyframes shake {
   10% {
     transform: translate3d(1px, 0, 0);
