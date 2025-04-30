@@ -22,6 +22,8 @@ export class DataStorage {
   private dataKey: string;
   private window: Window;
 
+  private callbacks: ((newData: Data.Boards) => void)[] = [];
+
   private static singleton: DataStorage;
 
   /**
@@ -171,7 +173,9 @@ export class DataStorage {
    *
    * @param callbackfn - The callback function to call on new event.
    */
-  public onevent(callbackfn: (newData: Data.Boards) => void) {
+  public onevent(callbackfn: ((newData: Data.Boards) => void)) {
+    this.callbacks.push(callbackfn);
+
     this.window.addEventListener('storage', (event) => {
       if (event.key !== this.dataKey) return;
       else if (!event.newValue) return;
@@ -184,5 +188,14 @@ export class DataStorage {
         console.error('DataStorage event: ' + error);
       }
     });
+  }
+
+  /**
+   * Calls all storage event callbacks registered with `onevent` with the
+   * data currently stored in the instance. Call `read` beforehand to ensure
+   * the most up-to-date data.
+   */
+  public notifyAll() {
+    this.callbacks.map((callbackfn) => callbackfn(this.data));
   }
 }
