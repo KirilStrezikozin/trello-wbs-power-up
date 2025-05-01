@@ -12,6 +12,8 @@ import { Trello } from '@/src/types/trello';
 import { useEffect, useState } from 'react';
 
 import Intro from '../../components/intro';
+import ThemeSwitch from '../../components/theme';
+
 import { CapabilityHandlers, PowerUpState } from '../../lib/power-up';
 import { PowerUpNameLong } from '../../lib/constants';
 
@@ -51,36 +53,47 @@ export default function Home() {
     setPowerUpState(PowerUpState.Ready);
   }, []);
 
+  let title: string | undefined = undefined;
+  let description: string | undefined = undefined;
 
   switch (powerUpState) {
     case PowerUpState.Loading:
       return (
-        <Intro
-          title='Loading...'
-          description='Trello Power-Up is loading.'
-        >
-        </Intro>
+        <>
+        </>
       );
+    /*
+    title = 'Loading...'
+    description = 'Trello Power-Up is loading.';
+    break;
+    */
     case PowerUpState.Ready:
-      return (
-        <Intro
-          title={PowerUpNameLong}
-          description='Trello Power-Up has been successfully loaded!'
-        />
-      );
+      title = PowerUpNameLong;
+      description = 'Trello Power-Up has been successfully loaded!';
+      break;
     case PowerUpState.NotInTrelloError:
-      return (
-        <Intro
-          title='XXX Error'
-          description="No one's on the line... Did you open this page from inside Trello?"
-        />
-      );
+      title = 'XXX Error';
+      description = "No one's on the line... Did you open this page from inside Trello?";
+      break;
     default:
-      return (
-        <Intro
-          title='XXX Error'
-          description="Failed to initialize the Power-Up. Did you open this page from inside Trello?"
-        />
-      );
+      title = 'XXX Error';
+      description = "Failed to initialize the Power-Up. Did you open this page from inside Trello?";
+      break;
   }
+
+  return (
+    <>
+      <main className='flex flex-col gap-[32px] row-start-2 items-center sm:items-start'>
+        <Intro
+          title={title}
+          description={description}
+        />
+      </main>
+      <div className='fixed bottom-6 right-6'>
+        <div className='flex flex-col gap-[8px]'>
+          <ThemeSwitch />
+        </div>
+      </div>
+    </>
+  );
 }

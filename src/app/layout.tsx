@@ -11,10 +11,6 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import type { Metadata } from 'next';
 
-import Footer from '../components/footer';
-import ThemeSwitch from '../components/theme';
-import { DataTool } from '../components/tool';
-
 import { PowerUpDescription, PowerUpNameLong } from '../lib/constants';
 
 import '../styles/globals.css';
@@ -53,16 +49,7 @@ export default function RootLayout({
         <ThemeProvider attribute='class'>
           <div className='flex items-center justify-center'>
             <div className='grid grid-rows-[20px_1fr_20px] row-start-2 items-center justify-items-center sm:justify-items-start min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
-              <main className='flex flex-col gap-[32px] row-start-2 items-center sm:items-start'>
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <div className='fixed bottom-6 right-6'>
-              <div className='flex flex-col gap-[8px]'>
-                <DataTool />
-                <ThemeSwitch />
-              </div>
+              {children}
             </div>
           </div>
         </ThemeProvider>
