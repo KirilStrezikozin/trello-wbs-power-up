@@ -30,7 +30,8 @@ export enum PowerUpState {
  * @returns Assembled data.
  */
 function makeListData(lists: Trello.PowerUp.List[]): Data.List[] {
-  return lists.map(({ name, cards }) => ({
+  return lists.map(({ id, name, cards }) => ({
+    id,
     name,
     cards: cards.map(({ name, dueComplete }) => ({
       name,
