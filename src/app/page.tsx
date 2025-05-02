@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useReducer } from 'react';
+import { useEffect, useReducer } from 'react';
 
 import { ChartOptions } from '../components/chart';
 import { DataTool } from '../components/tool';
@@ -19,7 +19,6 @@ import Intro from '../components/intro';
 import { PowerUpDescription, PowerUpNameLong } from '../lib/constants';
 
 import * as StorageProvider from '../providers/storage';
-import { useMounted } from '../hooks/use-mounted';
 
 export default function Home() {
   const [storage, dispatchStorage] = useReducer(
@@ -27,20 +26,13 @@ export default function Home() {
     StorageProvider.initialValue
   );
 
-  const mounted = useMounted();
-
-  if (!mounted) {
-    return (
-      <>
-      </>
-    );
-  }
-
-  if (!storage.mounted) {
+  useEffect(() => {
+    /* Initialize the storage once the component is mounted on the client,
+     * because it requires access to the window object. */
     dispatchStorage({
       type: 'init'
     });
-  }
+  }, []);
 
   return (
     <StorageProvider.Context.Provider value={storage}>
