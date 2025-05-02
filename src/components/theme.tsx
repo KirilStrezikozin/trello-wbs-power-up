@@ -8,41 +8,61 @@
 
 'use client'
 
-import { useTheme } from 'next-themes'
-import { Moon, Sun, SunMoonIcon } from 'lucide-react';
+import { useCallback, useEffect } from 'react';
+import { Moon, Sun } from 'lucide-react';
 
 import { Button } from './ui/button';
-import { nextTheme, Theme } from '../lib/utils';
-import { useMounted } from '../hooks/use-mounted';
-
-function ThemeIcon({ theme }: { theme: string | undefined }) {
-  switch (theme) {
-    case Theme.Light:
-      return <Sun className='h-[1.2rem] w-[1.2rem] transition-all' />;
-    case Theme.Dark:
-      return <Moon className='h-[1.2rem] w-[1.2rem] transition-all' />;
-    case Theme.System:
-    default:
-      return <SunMoonIcon className='h-[1.2rem] w-[1.2rem] transition-all' />;
-  }
-}
 
 export default function ThemeSwitch() {
-  const mounted = useMounted();
+  const setTheme = useCallback((theme: 'light' | 'dark') => {
+    document.documentElement.classList[theme === 'dark' ? 'add' : 'remove']('dark');
 
-  const { theme, setTheme } = useTheme();
+    try {
+      window.localStorage.setItem('theme', theme);
+    } catch { }
+  }, []);
 
-  /* Render the theme switch when the page is mounted on the client.
-   * See <https://github.com/pacocoursey/next-themes> */
-  return mounted ? (
-    <Button
-      variant='outline'
-      onClick={() => setTheme(nextTheme(theme))}
-    >
-      <ThemeIcon theme={theme} />
-    </Button>
-  ) : (
+  const initTheme = useCallback(() => {
+    let preferredTheme: string | null = null;
+
+    try {
+      preferredTheme = window.localStorage.getItem('theme');
+    } catch { }
+
+    if (preferredTheme === 'light' || preferredTheme === 'dark') {
+      setTheme(preferredTheme);
+      return;
+    }
+
+    const watchSystemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    watchSystemTheme.addEventListener('change', (e) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    });
+
+  }, [setTheme]);
+
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
+
+  return (
     <>
+      <Button
+        aria-label='Use dark theme'
+        variant='outline'
+        className='flex dark:hidden'
+        onClick={() => setTheme('dark')}
+      >
+        <Sun className='h-[1.2rem] w-[1.2rem] transition-all' />
+      </Button>
+      <Button
+        aria-label='Use light theme'
+        variant='outline'
+        className='hidden dark:flex'
+        onClick={() => setTheme('light')}
+      >
+        <Moon className='h-[1.2rem] w-[1.2rem] transition-all' />
+      </Button>
     </>
   );
 }

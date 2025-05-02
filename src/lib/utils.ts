@@ -13,25 +13,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export enum Theme {
-  System = 'system',
-  Dark = 'dark',
-  Light = 'light',
-}
-
-export function nextTheme(theme: string | undefined): string {
-  switch (theme) {
-    case Theme.System:
-      return Theme.Dark;
-    case Theme.Dark:
-      return Theme.Light;
-    case Theme.Light:
-      return Theme.System;
-    default:
-      return Theme.System;
-  }
-}
-
 export default function IsDevelopment(): boolean {
   return process.env.NODE_ENV == 'development';
 }

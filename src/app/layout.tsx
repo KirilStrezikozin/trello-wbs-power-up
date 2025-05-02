@@ -8,7 +8,6 @@
 
 import Script from 'next/script';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { ThemeProvider } from 'next-themes';
 import type { Metadata } from 'next';
 
 import { PowerUpDescription, PowerUpNameLong } from '../lib/constants';
@@ -46,13 +45,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider attribute='class'>
-          <div className='flex items-center justify-center'>
-            <div className='grid grid-rows-[20px_1fr_20px] row-start-2 items-center justify-items-center sm:justify-items-start min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
-              {children}
-            </div>
+        <div className='flex items-center justify-center'>
+          <div className='grid grid-rows-[20px_1fr_20px] row-start-2 items-center justify-items-center sm:justify-items-start min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
+            {children}
           </div>
-        </ThemeProvider>
+        </div>
       </body>
     </html>
   );
