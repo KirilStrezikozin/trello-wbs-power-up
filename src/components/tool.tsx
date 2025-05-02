@@ -9,7 +9,7 @@
 'use client'
 
 import { FileCog } from 'lucide-react';
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
@@ -60,11 +60,11 @@ export function DataTool() {
   const storage = useContext(StorageProvider.Context);
   const dispatchStorage = useContext(StorageProvider.DispatchContext);
 
-  const form = useForm<formSchemaType>({
+  const form = useRef(useForm<formSchemaType>({
     resolver: zodResolver(formSchema),
-  });
+  }));
 
-  const onSubmit = (values: formSchemaType) => {
+  const onSubmit = useCallback((values: formSchemaType) => {
     if (!storage.instance) {
       throw StorageProvider.UninitializedError;
     }
@@ -80,7 +80,7 @@ export function DataTool() {
       newData: JSON.parse(values.value),
     });
 
-  }
+  }, [dispatchStorage, storage]);
 
   return (
     <Dialog
@@ -95,7 +95,7 @@ export function DataTool() {
               throw StorageProvider.UninitializedError;
             }
 
-            form.reset({
+            form.current.reset({
               key: storage.instance.key,
               value: JSON.stringify(storage.data, null, 2)
             });
@@ -116,14 +116,14 @@ export function DataTool() {
           </DialogDescription>
         </DialogHeader>
         <Form
-          {...form}
+          {...form.current}
         >
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.current.handleSubmit(onSubmit)}
             className='grid gap-4 pt-4'
           >
             <FormField
-              control={form.control}
+              control={form.current.control}
               name='key'
               render={({ field }) => (
                 <FormItem className='grid w-inherit gap-1.5 grid-cols-4 content-center'>
@@ -140,7 +140,7 @@ export function DataTool() {
               )}
             />
             <FormField
-              control={form.control}
+              control={form.current.control}
               name='value'
               render={({ field }) => (
                 <FormItem className='grid w-inherit gap-1.5 grid-cols-4 content-start'>
