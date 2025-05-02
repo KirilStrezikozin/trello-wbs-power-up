@@ -10,68 +10,61 @@
 
 import { FileCog } from 'lucide-react';
 import { useContext, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog';
 
-import { Label } from './ui/label'
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel
+} from './ui/form';
+
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 
-import { cn } from '../lib/utils';
-
 import * as StorageProvider from '../providers/storage';
 import { DataStorage } from '../lib/data';
 
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const formSchema = z.object({
+  key: z.string().min(1),
+  value: z.custom<string>(((value) => {
+    try {
+      DataStorage.verifiedData(JSON.parse(value));
+      return true;
+    } catch {
+      return false;
+    }
+  }))
+}).strict();
+
+type formSchemaType = z.infer<typeof formSchema>;
+
 export function DataTool() {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState('');
-  const [shaking, setShaking] = useState(false);
-
-  const [dataKey, setDataKey] = useState('');
-  const [dataValue, setDataValue] = useState('');
 
   const storage = useContext(StorageProvider.Context);
   const dispatchStorage = useContext(StorageProvider.DispatchContext);
 
-  /* Render the data tool on the client once local storage is mounted. */
-  if (!storage.mounted /* || !IsDevelopment() */) {
-    return (
-      <>
-      </>
-    );
-  }
+  const form = useForm<formSchemaType>({
+    resolver: zodResolver(formSchema),
+  });
 
-  const initFields = () => {
-    if (!storage.instance) {
-      throw StorageProvider.UninitializedError;
-    }
-
-    setDataKey(storage.instance.key);
-    setDataValue(JSON.stringify(storage.data, null, 2));
-  }
-
-  const onOpen = () => {
-    initFields();
-    setError('');
-    setOpen(true);
-  }
-
-  const onOpenChange = () => {
-    if (open) {
-      setOpen(false);
-    }
-  }
-
-  const onSave = () => {
+  const onSubmit = (values: formSchemaType) => {
     if (!storage.instance) {
       throw StorageProvider.UninitializedError;
     }
@@ -80,37 +73,35 @@ export function DataTool() {
       throw Error('No provider of storage dispatch');
     }
 
-    try {
-      const newData = DataStorage.verifiedData(JSON.parse(dataValue));
+    setOpen(false);
 
-      setOpen(false);
+    dispatchStorage({
+      type: 'update',
+      newData: JSON.parse(values.value),
+    });
 
-      dispatchStorage({
-        type: 'update',
-        newData: newData,
-      });
-
-    } catch (error) {
-      setError('Value is invalid. Schema issue or bad JSON syntax.');
-      setShaking(true);
-
-      if (error instanceof Error) {
-        console.log(error.message);
-      }
-
-      return;
-    }
   }
 
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={() => { if (open) setOpen(false) }}
     >
       <DialogTrigger asChild>
         <Button
           variant='outline'
-          onClick={onOpen}
+          onClick={() => {
+            if (!storage.instance) {
+              throw StorageProvider.UninitializedError;
+            }
+
+            form.reset({
+              key: storage.instance.key,
+              value: JSON.stringify(storage.data, null, 2)
+            });
+
+            setOpen(true);
+          }}
         >
           <FileCog className='h-[1.2rem] w-[1.2rem]' />
         </Button>
@@ -124,56 +115,59 @@ export function DataTool() {
             Make changes to Power-Up chart data.
           </DialogDescription>
         </DialogHeader>
-        <div className='grid gap-4 py-4'>
-          <div className='grid w-full gap-1.5 grid-cols-4 items-start'>
-            <Label htmlFor='data-key' className='pt-[14px]'>
-              Key
-            </Label>
-            <Input
-              disabled
-              id='data-key'
-              placeholder='Enter storage key here'
-              className='col-span-3'
-              value={dataKey}
-              onChange={e => setDataKey(e.target.value)}
-            />
-          </div>
-          <div className='grid w-full gap-1.5 grid-cols-4 items-start'>
-            <Label htmlFor='data-value' className='pt-[14px]'>
-              Value
-            </Label>
-            <Textarea
-              id='data-value'
-              placeholder='Enter JSON value here'
-              className={cn(
-                shaking ? 'animate-shake-once' : '',
-                error && 'border-1 border-solid border-destructive',
-                'col-span-3 max-h-[25vh]'
+        <Form
+          {...form}
+        >
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className='grid gap-4 pt-4'
+          >
+            <FormField
+              control={form.control}
+              name='key'
+              render={({ field }) => (
+                <FormItem className='grid w-inherit gap-1.5 grid-cols-4 content-center'>
+                  <FormLabel>Key</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      placeholder='Enter storage key here'
+                      className='col-span-3'
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-              onAnimationEnd={() => setShaking(false)}
-              value={dataValue}
-              onChange={e => {
-                setDataValue(e.target.value)
-                setError(''); /* Clear error state. */
-              }}
             />
-          </div>
-          <p className={cn(
-            'text-sm text-muted-foreground text-center sm:text-left',
-            error && 'text-destructive'
-          )}
-          >
-            {error ? error : 'Chart and its options will reflect your changes.'}
-          </p>
-        </div>
-        <DialogFooter>
-          <Button
-            type='submit'
-            onClick={onSave}
-          >
-            Save changes
-          </Button>
-        </DialogFooter>
+            <FormField
+              control={form.control}
+              name='value'
+              render={({ field }) => (
+                <FormItem className='grid w-inherit gap-1.5 grid-cols-4 content-start'>
+                  <FormLabel className='h-min pt-[14px]'>Value</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder='Enter JSON value here'
+                      className='animate-none aria-[invalid=true]:animate-shake-once col-span-3 max-h-[25vh]'
+                      {...field}
+                    />
+                  </FormControl>
+                  <div className='col-span-full pt-4'>
+                    <FormLabel className='data-[error=true]:hidden flex text-sm text-muted-foreground data-[error=true]:text-destructive text-center sm:text-left'>
+                      Chart and its options will reflect your changes.
+                    </FormLabel>
+                    <FormLabel className='hidden data-[error=true]:flex text-sm text-muted-foreground data-[error=true]:text-destructive text-center sm:text-left'>
+                      Value is invalid. Schema issue or bad JSON syntax.
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <div className='w-inherit flex justify-end pt-4'>
+              <Button type='submit'>Save changes</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
