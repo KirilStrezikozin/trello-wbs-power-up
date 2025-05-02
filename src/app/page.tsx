@@ -10,7 +10,7 @@
 
 import { useEffect, useReducer } from 'react';
 
-import { ChartOptions } from '../components/chart';
+import { Chart } from '../components/chart';
 import { DataTool } from '../components/tool';
 import ThemeSwitch from '../components/theme';
 import Footer from '../components/footer';
@@ -42,7 +42,7 @@ export default function Home() {
             title={PowerUpNameLong}
             description={PowerUpDescription + '.'}
           />
-          <ChartOptions />
+          <Chart />
         </main>
         <Footer />
         <div className='fixed bottom-6 right-6'>
