@@ -365,28 +365,143 @@ export function ChartDialog({
   const [showCompleted, setShowCompleted] = useState<Checked>(true)
   const [showLines, setShowLines] = useState<Checked>(true)
 
-  const chartContent = useMemo(() => (
-    <div className='flex flex-col items-center justify-center gap-[32px] w-max'>
-      <Card className='w-fit py-6 px-32 mb-4'>
+  const [dialogContentRef, setDialogContentRef] = useState<(HTMLElement | null)>(null);
+
+  const computeLoc = useCallback((ref: HTMLElement, xAnchor: 'left' | 'right' | 'center', yAnchor: 'bottom' | 'top' | 'center') => {
+    let x: number, y: number;
+
+    switch (xAnchor) {
+      case 'left':
+        x = ref.offsetLeft;
+        break;
+      case 'right':
+        x = ref.offsetLeft + ref.offsetWidth;
+        break;
+      case 'center':
+        x = ref.offsetLeft + (ref.offsetWidth / 2);
+        break;
+    }
+
+    switch (yAnchor) {
+      case 'top':
+        y = ref.offsetTop;
+        break;
+      case 'bottom':
+        y = ref.offsetTop + ref.offsetHeight;
+        break;
+      case 'center':
+        y = ref.offsetTop + (ref.offsetHeight / 2);
+        break;
+    };
+
+    return { x: x, y: y };
+  }, []);
+
+  const lineToList = useCallback((fromLoc: { x: number, y: number }, toLoc: { x: number, y: number }, radius: number) => {
+    /* Draw a straight line without rounding if chart and column headings X
+     * coordinate values are close. We do not compare with ===, because
+     * sometimes they are off by 0.5. Compare with radius here to be safe. */
+    if (Math.abs(fromLoc.x - toLoc.x) <= radius) {
+      return `M${fromLoc.x} ${fromLoc.y} V${toLoc.y}`;
+    }
+
+    const yd = (toLoc.y - fromLoc.y) / 2;
+    const r = Math.min(yd, radius);
+    const rx = (fromLoc.x < toLoc.x ? -1 : 1) * r;
+
+    return `M ${toLoc.x} ${toLoc.y} v -${yd - r} q 0 -${r} ${rx} -${r} h ${fromLoc.x - toLoc.x - (2 * rx)} q ${rx} 0 ${rx} -${r} V ${fromLoc.y}`;
+  }, []);
+
+  const lineToCard = useCallback((fromLoc: { x: number, y: number }, toLoc: { x: number, y: number }, radius: number) => {
+    const xc = fromLoc.x + (toLoc.x - fromLoc.x) / 2;
+    // return `M ${xc} ${fromLoc.y} L ${toLoc.x} ${toLoc.y}`;
+    return `M ${xc} ${fromLoc.y} V ${toLoc.y - radius} Q ${xc} ${toLoc.y} ${xc + radius} ${toLoc.y}`;
+  }, []);
+
+  /* Pre-render line flakes once the dialog content is mounted regardless of
+   * whether the user wants to show lines or not, as this will save resources
+   * if they constantly toggle lines on and off. */
+  const chartContentLineFlakesPrep = useMemo(() => {
+    if (!dialogContentRef) return null;
+
+    const radius = 12;
+    const error = (s: string) => `Failed to find ${s}. Component is either not mounted or id is not set`;
+
+    const chartHeading = dialogContentRef?.children.namedItem('chart-heading');
+    if (!chartHeading || !(chartHeading instanceof HTMLElement)) throw Error(error('chart heading'));
+
+    const chartColumns = dialogContentRef?.children.namedItem('chart-columns');
+    if (!chartColumns) throw Error(error('chart columns'));
+
+    const chartHeadingLoc = computeLoc(chartHeading, 'center', 'bottom');
+
+    return (
+      <svg
+        id='chart-flakes-lines'
+        xmlns='http://www.w3.org/2000/svg'
+        strokeWidth='2'
+        fill='none'
+        className='z-1 absolute left-0 top-0 w-full h-full stroke-[var(--border)] dark:stroke-[#222222]'
+      >
+        <path d={
+          Array.from(chartColumns.children)
+            .map((columnRef) => {
+              const chartColumnHeading = columnRef.children.namedItem('chart-column-heading');
+              if (!chartColumnHeading || !(chartColumnHeading instanceof HTMLElement)) throw Error(error('chart column heading'));
+
+              const chartColumnHeadingLoc = computeLoc(chartColumnHeading, 'center', 'top');
+
+              const chartCards = columnRef.children.namedItem('chart-rows');
+              if (!chartCards) throw Error(error('chart rows'));
+
+              const chartColumnHeadingLeftLoc = computeLoc(chartColumnHeading, 'left', 'center');
+
+              const linesToCards = Array.from(chartCards.children)
+                .map((cardRef) => {
+                  if (!(cardRef instanceof HTMLElement)) throw Error(error('chart card'));
+                  return lineToCard(chartColumnHeadingLeftLoc, computeLoc(cardRef, 'left', 'center'), radius);
+                })
+                .reduce((prev, curr) => prev + curr, '');
+
+              return lineToList(chartHeadingLoc, chartColumnHeadingLoc, radius) + linesToCards;
+
+            })
+            .reduce((prev, curr) => prev + curr)
+        }
+        />
+      </svg>
+
+    );
+  }, [dialogContentRef, computeLoc, lineToList, lineToCard]);
+
+  const chartContentLineFlakes = useMemo(
+    () => showLines ? chartContentLineFlakesPrep : null,
+    [showLines, chartContentLineFlakesPrep]
+  );
+
+  const chartContentInner = useMemo(() => (
+    <>
+      <Card id='chart-heading' className='z-2 w-fit py-6 px-32 mb-4'>
         <CardContent>
           <p className='text-2xl font-bold'>{data.name}</p>
         </CardContent>
       </Card>
       <div
-        className='grid grid-flow-col gap-[32px] justify-center items-stretch'
+        id='chart-columns'
+        className='z-2 grid grid-flow-col gap-[32px] justify-center items-stretch'
         /* We do not know the number of columns beforehand, hence the style value is specified directly. */
         style={{ gridTemplateColumns: `repeat(${data.lists.length}, minmax(0, 1fr))` }}
       >
         {data.lists.map((list) => (
-          <div key={list.id}>
-            <Card className='self-auto py-4 mb-6'>
+          <div id='chart-column' key={list.id}>
+            <Card id='chart-column-heading' className='self-auto py-4 mb-6'>
               <CardContent className='h-full content-center'>
                 <p className='text-xl font-semibold text-center'>{list.name}</p>
               </CardContent>
             </Card>
-            <div className='flex flex-col gap-4'>
+            <div id='chart-rows' className='flex flex-col gap-4'>
               {list.cards.map((card, index) => (
-                <Card key={index} className={cn(
+                <Card id='chart-row' key={index} className={cn(
                   'w-fit max-w-xs ml-6 mr-2 py-4',
                   (showCompleted && card.isComplete) && 'line-through text-muted-foreground opacity-80 motion-safe:animate-scale-once'
                 )}>
@@ -402,8 +517,15 @@ export function ChartDialog({
           </div>
         ))}
       </div>
+    </>
+  ), [data, showCompleted]);
+
+  const chartContent = useMemo(() => (
+    <div ref={setDialogContentRef} className='flex flex-col items-center justify-center gap-[32px] w-max'>
+      {chartContentInner}
+      {chartContentLineFlakes}
     </div>
-  ), [data, showCompleted, showLines]);
+  ), [chartContentInner, chartContentLineFlakes]);
 
   const dialogContent = useMemo(() => (
     <DraggableCore
@@ -446,7 +568,7 @@ export function ChartDialog({
 
   const dialogOptionsTrigger = useMemo(() => (
     <DropdownMenuTrigger asChild>
-      <Button variant="outline">
+      <Button variant='outline'>
         <SlidersHorizontal className='h-[1.2rem] w-[1.2rem]' />
       </Button>
     </DropdownMenuTrigger>
@@ -455,7 +577,7 @@ export function ChartDialog({
   const dialogOptions = useMemo(() => (
     <DropdownMenu>
       {dialogOptionsTrigger}
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuContent className='w-56'>
         <DropdownMenuLabel>Appearance</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
@@ -467,7 +589,6 @@ export function ChartDialog({
         <DropdownMenuCheckboxItem
           checked={showLines}
           onCheckedChange={setShowLines}
-          disabled
         >
           Show lines
         </DropdownMenuCheckboxItem>
