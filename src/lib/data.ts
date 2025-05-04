@@ -87,20 +87,33 @@ export class DataStorage {
   }
 
   /**
-   * Updates data storage's data.
+   * Write new full Trello boards data into the local storage and
+   * update storage's data.
    *
-   * @param newData - New data for the data storage instance.
+   * @param newData - Boards data to write.
    * @returns The updated data.
    *
    * @throws {TypeError} When validation failed.
+   * @throws {QuotaExceededError} When `localStorage.setItem()` was declined.
    */
-  public update(newData: Data.Boards): Data.Boards {
-    this.data = DataStorage.verifiedData(newData);
+  public writeAll(data: Data.Boards): Data.Boards {
+    const verif = Data.BoardsSchema.safeParse(data);
+    if (!verif.success) {
+      throw TypeError('Argument does not satisfy validation schema');
+    }
+
+    /* Try to write to the local storage first.
+     * If it fails, storage instance's data is left unmodified. */
+    this.window.localStorage.setItem(this.dataKey, JSON.stringify(verif.data));
+
+    /* Use clean data value in case schema strips out unrecognized keys. */
+    this.data = verif.data;
     return this.data;
   }
 
   /**
-   * Write new Trello Board data into the local storage.
+   * Write new Trello Board data into the local storage and
+   * update storage's data.
    *
    * @param board - Board data to write.
    * @returns The updated data.
@@ -117,16 +130,20 @@ export class DataStorage {
     /* Use clean board value in case schema strips out unrecognized keys. */
     board = verif.data;
 
-    const index = this.data.findIndex((value) => value.id === board.id);
+    /* Modify instance's data at the end,
+     * if write to the local storage succeeds. */
+    const data = [...this.data];
+    const index = data.findIndex((value) => value.id === board.id);
 
     if (index === -1) {
-      this.data.push(board);
+      data.push(board);
     } else {
-      this.data[index].lists = board.lists;
+      data[index].lists = board.lists;
     }
 
-    this.window.localStorage.setItem(this.dataKey, JSON.stringify(this.data));
+    this.window.localStorage.setItem(this.dataKey, JSON.stringify(data));
 
+    this.data = data;
     return this.data;
   }
 

@@ -60,7 +60,7 @@ function Reducer(value: Value, action: Action): Value {
         }
 
         try {
-          instance.update(newData);
+          instance.writeAll(newData);
           console.log(newData);
 
         } catch (error) {
@@ -92,7 +92,7 @@ function Reducer(value: Value, action: Action): Value {
         return value;
       }
 
-      data = instance.update(action.newData);
+      data = instance.writeAll(action.newData);
 
       return {
         mounted: true,
