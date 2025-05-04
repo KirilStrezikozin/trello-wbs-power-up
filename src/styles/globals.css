@@ -47,6 +47,7 @@
 
   --animate-shake: shake 0.5s both infinite;
   --animate-shake-once: shake 0.5s both 1;
+  --animate-scale-once: scale 0.5s cubic-bezier(0, 0, 0.2, 1) 1;
 }
 
 :root {

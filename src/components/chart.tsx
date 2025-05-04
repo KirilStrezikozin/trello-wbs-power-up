@@ -388,7 +388,7 @@ export function ChartDialog({
               {list.cards.map((card, index) => (
                 <Card key={index} className={cn(
                   'w-fit max-w-xs ml-6 mr-2 py-4',
-                  (showCompleted && card.isComplete) && 'line-through text-muted-foreground opacity-80'
+                  (showCompleted && card.isComplete) && 'line-through text-muted-foreground opacity-80 motion-safe:animate-scale-once'
                 )}>
                   <CardContent className='flex flex-row items-center gap-4'>
                     {(showCompleted && card.isComplete) ? (
