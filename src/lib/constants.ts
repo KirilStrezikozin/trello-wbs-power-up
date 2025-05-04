@@ -26,3 +26,6 @@ export const PowerUpDescription =
 
 export const PowerUpSourceUrl =
   'https://gitlab.com/KirilStrezikozin/trello-wbs-power-up';
+
+export const PowerUpGuideUrl =
+  'https://gitlab.com/KirilStrezikozin/trello-wbs-power-up#wbs-power-up-for-trello';

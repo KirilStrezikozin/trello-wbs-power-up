@@ -9,7 +9,7 @@
 import { useContext } from 'react';
 import { FileQuestion } from 'lucide-react';
 
-import { PowerUpSourceUrl, TrelloUrl } from '../lib/constants';
+import { PowerUpGuideUrl, PowerUpSourceUrl, TrelloUrl } from '../lib/constants';
 import { cn } from '../lib/utils';
 
 import * as StorageProvider from '../providers/storage';
@@ -24,7 +24,7 @@ export default function Footer() {
           storage.data.length > 0 && 'hover:underline hover:underline-offset-4',
           'flex items-center gap-2'
         )}
-        href='/guide'
+        href={PowerUpGuideUrl}
         target='_blank'
         rel='noopener noreferrer'
       >
