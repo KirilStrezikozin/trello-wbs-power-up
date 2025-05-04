@@ -23,6 +23,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { toPng, toSvg } from 'html-to-image';
+
 import { cn } from '@/src/lib/utils';
 
 import { Button } from './ui/button';
@@ -71,8 +73,13 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from './ui/dropdown-menu';
 
@@ -367,6 +374,24 @@ export function ChartDialog({
 
   const [dialogContentRef, setDialogContentRef] = useState<(HTMLElement | null)>(null);
 
+  const exportAs = useCallback((format: 'png' | 'svg') => {
+    if (dialogContentRef === null) {
+      throw Error('Failed to find chart content. Component is not mounted');
+    }
+
+    (format === 'png' ? toPng : toSvg)(dialogContentRef, { cacheBust: true })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.download = `wbs-chart.${format}`;
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+
+  }, [dialogContentRef]);
+
   const computeLoc = useCallback((ref: HTMLElement, xAnchor: 'left' | 'right' | 'center', yAnchor: 'bottom' | 'top' | 'center') => {
     let x: number, y: number;
 
@@ -578,7 +603,7 @@ export function ChartDialog({
     <DropdownMenu>
       {dialogOptionsTrigger}
       <DropdownMenuContent className='w-56'>
-        <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+        <DropdownMenuLabel>Options</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
           checked={showCompleted}
@@ -592,9 +617,19 @@ export function ChartDialog({
         >
           Show lines
         </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Export as</DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => exportAs('png')}>PNG</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportAs('svg')}>SVG</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu >
-  ), [dialogOptionsTrigger, showCompleted, showLines]);
+  ), [dialogOptionsTrigger, showCompleted, showLines, exportAs]);
 
   const dialogHeader = useMemo(() => (
     <DialogHeader>
